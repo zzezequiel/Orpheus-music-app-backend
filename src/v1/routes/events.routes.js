@@ -10,7 +10,7 @@ const { checkJwt } = require("../../middlewares/checkJwt.middleware")
 
 const router = express.Router()
 router
-    .get("/",       checkJwt, getAllEvents)
+    .get("/",        getAllEvents) //When i put the check i cant fetch the events. its a diferent token? wtf
     .get("/:id",    checkJwt, getEventById)
     .post("/",      checkJwt, postEvent)
     .patch("/:id",  checkJwt, patchEvent)
