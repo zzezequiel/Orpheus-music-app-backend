@@ -1,5 +1,9 @@
 const mongoose = require("mongoose")
-const { Playlist } = require("../models")
+const { Playlist, Track } = require("../models")
+const fs = require('fs-extra')
+const {
+    uploadImage, destroyImage
+} = require("../utils/cloudinary")
 
 const playlistController = {
     getAllPlaylists: async (req, res) => {
@@ -25,7 +29,7 @@ const playlistController = {
             res.status(400).send(err)
         }
     },
-    getPlaylistById: async (req, res, next) => {
+    getPlaylistById: async (req, res) => {
         const { params: { id } } = req
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -59,8 +63,10 @@ const playlistController = {
         }
     },
     postPlaylist: async (req, res) => {
-        const { body, params: { id } } = req
+        console.log("holi")
+        const { body, params: { id }, files } = req
         try {
+
             const playlistExist = await Playlist.findOne({ name: body.name, ownership: id })
 
             if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -76,18 +82,60 @@ const playlistController = {
                     message: "Playlist already exist"
                 })
             }
-            if (body.ownership) {
-                const playlist = await Playlist.create({ ...body, ownership: [id, ...body.ownership] })
-                res.status(201).send({
-                    status: "Created ",
-                    data: playlist
-                })
+
+            if (files?.image) {
+
+                const { public_id, secure_url } = await uploadImage(files.image.tempFilePath)
+
+                if (body.ownership) {
+                    const playlist = await Playlist.create(
+                        {
+                            ...body,
+                            img: { id: public_id, url: secure_url },
+                            ownership: [id, ...body.ownership]
+                        }
+                    )
+                    res.status(201).send({
+                        status: "Created ",
+                        data: playlist
+                    })
+                } else {
+                    const playlist = await Playlist.create(
+                        {
+                            ...body,
+                            img: { id: public_id, url: secure_url },
+                            ownership: [id]
+                        }
+                    )
+                    res.status(201).send({
+                        status: "Created ",
+                        data: playlist
+                    })
+                }
             } else {
-                const playlist = await Playlist.create({ ...body, ownership: [id] })
-                res.status(201).send({
-                    status: "Created ",
-                    data: playlist
-                })
+                if (body.ownership) {
+                    const playlist = await Playlist.create(
+                        {
+                            ...body,
+                            ownership: [id, ...body.ownership]
+                        }
+                    )
+                    res.status(201).send({
+                        status: "Created ",
+                        data: playlist
+                    })
+                } else {
+                    const playlist = await Playlist.create(
+                        {
+                            ...body,
+                            ownership: [id]
+                        }
+                    )
+                    res.status(201).send({
+                        status: "Created ",
+                        data: playlist
+                    })
+                }
             }
 
         } catch (err) {
@@ -105,7 +153,12 @@ const playlistController = {
         }
 
         try {
+
             const playlist = await Playlist.findByIdAndDelete(id)
+
+            if (playlist.img?.id) {
+                await destroyImage(playlist.img.id)
+            }
 
             if (!playlist) {
                 res.status(404).send({
@@ -120,7 +173,7 @@ const playlistController = {
 
     },
     patchPlaylist: async (req, res) => {
-        const { params: { id }, body } = req
+        const { params: { id }, body, files } = req
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(404).send({
@@ -130,25 +183,59 @@ const playlistController = {
         }
 
         try {
-            const playlist = await Playlist.findByIdAndUpdate(
-                { _id: id },
-                { ...body }
-            )
+            if (files?.image) {
 
-            if (!playlist) {
-                res.status(404).send({
-                    status: "FALSE",
-                    message: `Playlist ${id} was not found`
+                const playlistFind = await Playlist.findById(id)
+                // Destroy previous image from cloudinary
+                if (playlistFind.img?.id) {
+
+                    await destroyImage(playlistFind.img.id)
+                }
+
+                //  const track = await Track.findByIdAndUpdate({_id:body.track._id},
+                //     {playlist: [body.track._id, ...track.playlist]})   
+                const { public_id, secure_url } = await uploadImage(files.image.tempFilePath)
+
+                await fs.unlink(files.image.tempFilePath)
+
+                const playlist = await Playlist.findByIdAndUpdate(
+                    { _id: id },
+                    {
+                        ...body,
+                        img: { id: public_id, url: secure_url }
+                    }
+                )
+                if (!playlist) {
+                    res.status(404).send({
+                        status: "FALSE",
+                        message: `Playlist ${id} was not found`
+                    })
+
+                }
+                res.status(201).send({
+                    status: "OK",
+                    message: `Playlist ${id} updated successfully`
                 })
 
-            }
-            res.status(201).send({
-                status: "OK",
-                message: `Playlist ${id} updated successfully`
-            })
+            } else {
+                const playlist = await Playlist.findByIdAndUpdate(
+                    { _id: id },
+                    { ...body }
+                )
+                if (!playlist) {
+                    res.status(404).send({
+                        status: "FALSE",
+                        message: `Playlist ${id} was not found`
+                    })
 
+                }
+                res.status(201).send({
+                    status: "OK",
+                    message: `Playlist ${id} updated successfully`
+                })
+            }
         } catch (err) {
-            res.status(400).send(err)
+            res.status(400).send(err.message)
 
         }
     }

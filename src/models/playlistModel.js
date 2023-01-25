@@ -3,25 +3,25 @@ const { Schema, model } = require("mongoose")
 const playlistSchema = new Schema({
     name: {
         type: String,
-        require: [true, "Name is required"]
+        required: [true, "Name is required"],
+        trim: true
     },
     description: {
-        type: String
+        type: String,
+        trim: true
     },
     img: {
-        id: String,       
+        id: String,
         url: {
             type: String,
-            require: [true, "img is required"]
+            require: [true, "img is required"],
+            default: 'https://res.cloudinary.com/drghk9p6q/image/upload/v1674479864/Final-Project-MERN/images-orpheus/default-images/playlist_mcyltf.webp'
         }
     },
-    files: [
+    tracks: [
         {
-            id: String,
-            url: {
-                type: String,
-                require: [true, "the file is required"]
-            }
+            type: Schema.Types.ObjectId,
+            ref: "track"
         }
     ],
     followers: [
@@ -45,7 +45,7 @@ const playlistSchema = new Schema({
     ownership: [
         {
             type: Schema.Types.ObjectId,
-            require: [true, "ownership is required"],
+            required: [true, "ownership is required"],
             ref: "user"
         }
 
