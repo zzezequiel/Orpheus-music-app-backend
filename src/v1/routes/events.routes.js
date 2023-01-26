@@ -13,7 +13,7 @@ router
     .get("/",        getAllEvents) //When i put the check i cant fetch the events. its a diferent token? wtf
     .get("/:id",    checkJwt, getEventById)
     .post("/",      checkJwt, postEvent)
-    .patch("/:id",   patchEvent)
+    .patch("/:id",  checkJwt, patchEvent)
     .delete("/:id", checkJwt, deleteEvent)
 
 module.exports = router;
