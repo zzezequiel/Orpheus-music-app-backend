@@ -82,7 +82,8 @@ const userController = {
         }
 
         try {
-            const user = await User.create({ ...body })
+            const user = await User.create({ ...body },
+                { new: true })
             res.status(201).send({
                 status: "Created",
                 data: user
@@ -138,8 +139,7 @@ const userController = {
 
         try {
             if (files?.image) {
-                // Destroy previous image from cloudinary
-                console.log('are u here mdf?')
+                
                 const user = await User.findById(id)
                 if (!user) {
                     res.status(404).send({
@@ -162,7 +162,8 @@ const userController = {
                     {
                         ...body,
                         img: { id: public_id, url: secure_url }
-                    }
+                    },
+                    { new: true }
                 )
 
                 res.status(201).send({
@@ -174,7 +175,8 @@ const userController = {
             } else {
                 const user = await User.findByIdAndUpdate(
                     { _id: id },
-                    { ...body }
+                    { ...body },
+                    { new: true }
                 )
 
                 if (!user) {
