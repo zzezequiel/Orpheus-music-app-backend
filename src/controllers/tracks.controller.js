@@ -105,9 +105,7 @@ const tracksController = {
                         id: imageResult.public_id,
                         url: imageResult.secure_url
                     }
-                },
-                { new: true }
-                )
+                })
 
                 const updatedUser = await User.findByIdAndUpdate(
                     { _id: body.ownership },
@@ -130,8 +128,7 @@ const tracksController = {
                         id: videoResult.public_id,
                         url: videoResult.secure_url
                     },
-                },
-                { new: true })
+                })
 
                 const updatedUser = await User.findByIdAndUpdate(
                     { _id: body.ownership },
@@ -149,9 +146,6 @@ const tracksController = {
             }
             
         } catch (err) {
-            await fs.unlink(files?.video?.tempFilePath)
-            await fs.unlink(files?.image?.tempFilePath)
-
             res
                 .status(err?.status || 500)
                 .send({ status: 'FAILED', error: err?.message })
@@ -186,9 +180,6 @@ const tracksController = {
             if (track.img?.id) {
                 await destroyImage(track.img.id)
             }
-
-          
-            
 
             res.status(204).send({ status: 'OK', data: updatedUser })
         } catch (err) {
@@ -270,9 +261,6 @@ const tracksController = {
 
             res.status(201).send({ status: 'OK', data: `Track ${id} updated successfully` })
         } catch (err) {
-            await fs.unlink(files?.video?.tempFilePath)
-            await fs.unlink(files?.image?.tempFilePath)
-            
             res
                 .status(err?.status || 500)
                 .send({ status: 'FAILDED', error: err?.message })

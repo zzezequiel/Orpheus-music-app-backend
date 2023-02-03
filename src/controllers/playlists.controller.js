@@ -146,7 +146,6 @@ const playlistController = {
             }
 
         } catch (err) {
-          
             res.status(400).send(err.message)
         }
     },
@@ -250,9 +249,7 @@ const playlistController = {
                 })
             }
         } catch (err) {
-            await fs.unlink(files?.image?.tempFilePath)
             res.status(400).send(err.message)
-
         }
     }
 }

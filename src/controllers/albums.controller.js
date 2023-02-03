@@ -61,7 +61,6 @@ const albumController = {
 
         } catch (error) {
             res.status(400).send(error.message)
-
         }
     },
 
@@ -97,9 +96,7 @@ const albumController = {
                         ...body,
                         tracks,
                         img: { id: public_id, url: secure_url }
-                    }
-                   
-                )
+                    })
 
                 const updatedUser = await User.findByIdAndUpdate(
                     { _id: body.ownership },
@@ -135,11 +132,6 @@ const albumController = {
                         album,
                         updatedUser
                     }
-                })
-
-                res.status(201).send({
-                    status: "Album created collab 2",
-                    data: album
                 })
             }
 
@@ -186,7 +178,6 @@ const albumController = {
 
         } catch (error) {
             res.status(400).send(error.message)
-
         }
 
     },
@@ -258,9 +249,7 @@ const albumController = {
                 })
             }
         } catch (error) {
-            await fs.unlink(files?.image?.tempFilePath)
             res.status(400).send(error.message)
-
         }
     }
 }
